@@ -1,20 +1,20 @@
 from threading import Thread
 import time
+from typing import Optional
 import ntcore
 
 from mathutil import mathUtil
-from variables import variables
+from constants import constants
 
 class robot():
 
     _ntInstance = None #except NetworkTableInstance
 
-    def __init__(this,period:float) -> None:
-        this._mainLoopThread = None #except thread
+    def __init__(this,period:Optional[float]) -> None:
         this.running = False
         
         if period == None:
-            period = 0.02
+            period = constants.PERIOD_TIME
 
         this.periodTime = period
 
@@ -24,9 +24,9 @@ class robot():
     @classmethod
     def setupNetworktables(this) -> None:
         robot._ntInstance = ntcore.NetworkTableInstance.getDefault()
-        robot._ntInstance.setServerTeam(variables.TEAM_NUMBER,variables.NT_SERVER_PORT)
+        robot._ntInstance.setServerTeam(constants.TEAM_NUMBER,constants.NT_SERVER_PORT)
         robot._ntInstance.startDSClient()
-        robot._ntInstance.startClient4()
+        robot._ntInstance.startClient4(constants.CLIENT_IDENTITY)
 
     @classmethod
     def getNtInstance(this) -> ntcore.NetworkTableInstance:
@@ -34,10 +34,9 @@ class robot():
     
     def start(this):
         this.running = True
-        this._mainLoopThread = Thread(target=this.periodicRunner)
-        this._mainLoopThread.run()
+        this.periodicRunner()
 
-    def stop(this):
+    def pause(this):
         this.running = False
 
     def periodicRunner(this):
@@ -48,7 +47,7 @@ class robot():
                 time.sleep(mathUtil.max(0.0,this.periodTime - (time.time() - currentTime)))
                 continue
             except KeyboardInterrupt:
-                this.stop()
+                this.pause()
 
     def periodic():
         pass
